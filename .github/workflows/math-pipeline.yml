@@ -1,0 +1,70 @@
+name: Pipeline Division Mathematique
+
+on:
+  push:
+    branches:
+      - dev
+      - val
+      - prod
+  workflow_dispatch:
+    inputs:
+      input_number:
+        description: 'Nombre initial à tester (ex: 32)'
+        required: false
+        default: '32'
+
+jobs:
+  # --- JOB 1 : Exécution sur la branche DEV ---
+  dev-job:
+    if: github.ref_name == 'dev' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      result_dev: ${{ steps.calc_dev.outputs.result }}
+    steps:
+      - name: Division par 2 sur Dev
+        id: calc_dev
+        run: |
+          NUMBER=${{ github.event.inputs.input_number || 32 }}
+          echo "Nombre d'entrée : $NUMBER"
+          
+          RESULT=$(( NUMBER / 2 ))
+          echo "Résultat après division par 2 : $RESULT"
+          echo "result=$RESULT" >> $GITHUB_OUTPUT
+
+  # --- JOB 2 : Exécution sur la branche VAL ---
+  val-job:
+    needs: dev-job
+    if: always() && needs.dev-job.result == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      result_val: ${{ steps.calc_val.outputs.result }}
+    steps:
+      - name: Vérification de la parité et division par 4 sur Val
+        id: calc_val
+        run: |
+          DEV_RESULT=${{ needs.dev-job.outputs.result_dev }}
+          echo "Résultat reçu de Dev : $DEV_RESULT"
+          
+          # Vérification de la parité (reste de la division par 2)
+          if [ $(( DEV_RESULT % 2 )) -ne 0 ]; then
+            echo "Erreur : Le nombre $DEV_RESULT est impair. Arrêt de la pipeline."
+            exit 1
+          fi
+          
+          RESULT=$(( DEV_RESULT / 4 ))
+          echo "Le nombre est pair. Résultat après division par 4 : $RESULT"
+          echo "result=$RESULT" >> $GITHUB_OUTPUT
+
+  # --- JOB 3 : Exécution sur la branche PROD ---
+  prod-job:
+    needs: val-job
+    if: always() && needs.val-job.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Division par 8 sur Prod
+        run: |
+          VAL_RESULT=${{ needs.val-job.outputs.result_val }}
+          echo "Résultat reçu de Val : $VAL_RESULT"
+          
+          RESULT=$(( VAL_RESULT / 8 ))
+          echo "Résultat final après division par 8 en Prod : $RESULT"
