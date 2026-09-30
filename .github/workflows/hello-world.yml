@@ -1,0 +1,34 @@
+name: Hello World Workflow
+
+on:
+  push:
+    branches: [ main, dev, val, prod ]
+  workflow_dispatch:
+
+jobs:
+  print-lastname:
+    name: Afficher le Nom
+    runs-on: ubuntu-latest
+    steps:
+      - name: Nom
+        env:
+          USER_LASTNAME: ${{ secrets.USER_LASTNAME }} # ou ${{ vars.USER_LASTNAME }}
+        run: echo "Nom : $USER_LASTNAME"
+
+  print-firstname:
+    name: Afficher le Prénom
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prénom
+        env:
+          USER_FIRSTNAME: ${{ secrets.USER_FIRSTNAME }} # ou ${{ vars.USER_FIRSTNAME }}
+        run: echo "Prénom : $USER_FIRSTNAME"
+
+  print-email:
+    name: Afficher l'Email
+    runs-on: ubuntu-latest
+    steps:
+      - name: Email
+        env:
+          USER_EMAIL: ${{ secrets.USER_EMAIL }} # ou ${{ vars.USER_EMAIL }}
+        run: echo "Email : $USER_EMAIL"

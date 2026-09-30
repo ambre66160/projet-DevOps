@@ -1,0 +1,16 @@
+name: Branch Display Workflow
+
+on:
+  push:
+    branches:
+      - dev
+      - val
+      - prod
+
+jobs:
+  show-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Afficher la branche actuelle
+        run: |
+          echo "La pipeline tourne actuellement sur la branche : ${{ github.ref_name }}"

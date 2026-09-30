@@ -1,0 +1,19 @@
+name: Python Commit Check
+
+on:
+  push:
+
+jobs:
+  run-python-script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code source
+        uses: actions/checkout@v4
+
+      - name: Configurer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Exécuter le script Python inline
+        run: python -c "print('Commit success!')"
