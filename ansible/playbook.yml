@@ -1,0 +1,47 @@
+---
+- name: Install Nginx and deploy the Hello World page
+  hosts: web
+  become: true
+  vars:
+    nginx_port: 8082
+  tasks:
+    - name: Install Nginx
+      ansible.builtin.package:
+        name: nginx
+        state: present
+
+    - name: Remove default Nginx site
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Restart Nginx
+
+    - name: Configure Hello World site
+      ansible.builtin.copy:
+        dest: /etc/nginx/conf.d/hello.conf
+        mode: "0644"
+        content: |
+          server {
+              listen {{ nginx_port }};
+              root /var/www/html;
+              index index.html;
+          }
+      notify: Restart Nginx
+
+    - name: Deploy index.html
+      ansible.builtin.copy:
+        src: ../index.html
+        dest: /var/www/html/index.html
+        mode: "0644"
+
+    - name: Ensure Nginx is started and enabled
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Restart Nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
